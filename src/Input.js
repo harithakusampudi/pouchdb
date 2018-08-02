@@ -8,7 +8,7 @@ import styled from 'styled-components';
 import * as moment from 'moment';
 
 
-var taskdb = new PouchDB('task');
+var dummy = new PouchDB('dummy');
 var mydb = new PouchDB('mydb');
 
 // Get All Document
@@ -18,7 +18,8 @@ setDB(dbName)
     .then(db =>
     db.allDocs({
         include_docs: true,
-        attachments: true,
+        // attachments: true,
+        dcscending:true
     })
     )
     .then(results => {
@@ -34,8 +35,8 @@ setDB(dbName)
 
 const setDB = dbName =>
   new Promise((resolve, reject) => {
-    if (dbName === 'task') {
-      resolve(taskdb);
+    if (dbName === 'dummy') {
+      resolve(dummy);
     }
     if (dbName === 'mydb') {
         resolve(mydb);
@@ -53,68 +54,66 @@ const setDB = dbName =>
         reject(err));
   });
 
-// const Wrapper = styled.div`
-// padding: 4em;
-// background: 'white';
-// `;
-// const TaskName = styled.h1`
-// font-size: 1em;
-// display: flex;
-// alignItems:'flex-start',
-// color: black;
-// `;
+const Wrapper = styled.div`
+padding: 4em;
+background: 'white';
+`;
+const TaskName = styled.h1`
+font-size: 1em;
+display: flex;
+alignItems:'flex-start',
+color: black;
+`;
 
-// const Delete = styled.h1`
-// color: #DB6863;
-// cursor: pointer;
-// margin-left: auto;
-// font-size: 14px;
-// line-height: 14px;
-// transition: color .2s ease;
-// `;
+const Delete = styled.h1`
+color: #DB6863;
+cursor: pointer;
+margin-left: auto;
+font-size: 14px;
+line-height: 14px;
+transition: color .2s ease;
+`;
 class Input extends React.Component{
     constructor(){
         super();
+        this.state={taskList:[]}
         this.addtask=this.addtask.bind(this)
-        this.removeTasks=this.removeTasks.bind(this)
-        this.showTodos=this.showTodos.bind(this)
     }
 
     addtask(e){
         const name = e.target.value.trim();
         if(e.keyCode === 13 && name){
             const task={
+                id:Date.now(), 
                 name:name,
-                timestamp:moment(Date.now(), 'x').fromNow()
+                timestamp:moment().format("MMM Do YY")
             }
-            saveDoc('task',task)
-            this.showTodos()
+            saveDoc('dummy',task)
+        getAllDocs('dummy').then(response =>{
+            this.setState({taskList:response})
+        })            
             e.target.value=''
         }
     }
 
-    removeTasks(doc){
-        this.props.db.remove(doc)
-    }
-    
-    showTodos(){
-        var tasks=getAllDocs('task')
-        console.log("tasks",tasks);
-        // tasks.map((task)=>{
-        //     return <li>{task.name}</li>
-        // })
-    }
-
     render(){
+        console.log('state',this.state.taskList);
         return(
             <div>
               <h1>Add Tasks</h1>
+              <p>{moment().toDate().getTime()}</p>
+              {/* {moment("1533276020790", "YYYYMMDD").fromNow()} */}
                 <input
                 autoFocus
                 placeholder="Add Task"
                 onKeyDown={this.addtask}
                 />
-            {this.showTodos()}
+                <Wrapper>
+            {this.state.taskList.map((task)=>{
+                return <TaskName>{task.name}
+                </TaskName>
+            })}
+            </Wrapper>
             </div>
            
         )
